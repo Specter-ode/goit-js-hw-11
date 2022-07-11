@@ -1,86 +1,92 @@
-import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import createPostCard from './templates/post-card.hbs';
 import { fetchPosts } from './js/fetchPosts';
-import SimpleLightbox from 'simplelightbox';
-import 'simplelightbox/dist/simple-lightbox.min.css';
+import { makeSlider } from  './js/simpleSlider'
+import { alertAmountImagesFound, alertNoEmptySearch, alertNoImagesFound, alertEndOfSearch } from './js/alerts';
+import { scrollDownOnTwoRows, btnGoTopStatus, goTop } from './js/scroll';
 
 const galleryContainer = document.querySelector('.gallery');
 const formEl = document.querySelector('#search-form');
-const loadMoreBtnEl = document.querySelector('.load-more');
-let page = 1;
+const btnMoveDownOnTwoRows = document.querySelector('.btn-move-down');
+const btnGoTop = document.querySelector('.btn-move-up');
+const targetElementForInfiniteScroll = document.querySelector('.target-element');
+const intersectionObsOptions = {
+  root: null,
+  rootMargin: '0px 0px 150px 0px',
+  threshold: 1.0,
+};
+let page = null;
 let searchValue = '';
 const perPage = 40;
 
 const onBtnSubmit = async e => {
   e.preventDefault();
+  page = 1;
   searchValue = e.target.elements.searchQuery.value.trim().toLowerCase();
   try {
+    intersectionObs.unobserve(targetElementForInfiniteScroll);
     clearFields();
     const { data } = await fetchPosts(searchValue, page, perPage);
     if (searchValue === '') {
       alertNoEmptySearch();
-      loadMoreBtnEl.classList.add('is-hidden');
+      btnMoveDownOnTwoRows.classList.add('is-hidden');
       return;
     } else if (data.totalHits === 0) {
       alertNoImagesFound();
-      loadMoreBtnEl.classList.add('is-hidden');
+      btnMoveDownOnTwoRows.classList.add('is-hidden');
       return;
     } else {
       galleryContainer.innerHTML = createPostCard(data.hits);
-      makeSlider();
       alertAmountImagesFound(data);
-      loadMoreBtnEl.classList.remove('is-hidden');
+      intersectionObs.observe(targetElementForInfiniteScroll);
+      btnMoveDownOnTwoRows.classList.remove('is-hidden');
+      makeSlider();
+      animateCards();
     }
-    console.log(data);
   } catch (error) {
     clearFields();
     console.log(error);
   }
 };
 
-const onLoadMoreBtnElClick = async () => {
-  try {
-    page += 1;
-    const { data } = await fetchPosts(searchValue, page, perPage);
-    const totalPages = Math.ceil(data.totalHits / perPage);
-    if (page > totalPages) {
-      alertEndOfSearch();
+const intersectionObs = new IntersectionObserver((entries, observe) => {
+  entries.forEach(async entry => {
+    console.log(entry.isIntersecting);
+    if (!entry.isIntersecting) {
       return;
     }
-    galleryContainer.insertAdjacentHTML('beforeend', createPostCard(data.hits));
-    loadMoreBtnEl.classList.remove('is-hidden');
-    makeSlider();
-  } catch (error) {
-    console.log(error);
-  }
-};
+    try {
+      page += 1;
+      const { data } = await fetchPosts(searchValue, page, perPage);
+      const totalPages = Math.ceil(data.totalHits / perPage);
+      if (page > totalPages) {
+        alertEndOfSearch();
+        intersectionObs.unobserve(targetElementForInfiniteScroll);
+        btnMoveDownOnTwoRows.classList.add('is-hidden');
+        return;
+      }
+      galleryContainer.insertAdjacentHTML('beforeend', createPostCard(data.hits));
+      makeSlider();
+      animateCards();
+
+    } catch (error) {
+      console.log(error);
+    }
+  });
+}, intersectionObsOptions);
 
 formEl.addEventListener('submit', onBtnSubmit);
-loadMoreBtnEl.addEventListener('click', onLoadMoreBtnElClick);
+window.addEventListener('scroll', btnGoTopStatus);
+btnGoTop.addEventListener('click', goTop);
+btnMoveDownOnTwoRows.addEventListener('click', scrollDownOnTwoRows);
 
 function clearFields() {
   galleryContainer.innerHTML = '';
 }
 
-function makeSlider() {
-  const lightbox = new SimpleLightbox('.gallery a', {
-    captionsData: 'alt',
-    captionDelay: 250,
-    captionPosition: 'bottom',
-  }).refresh();
-}
-function alertAmountImagesFound(data) {
-  Notify.success(`Hooray! We found ${data.totalHits} images.`);
-}
-
-function alertNoEmptySearch() {
-  Notify.failure('The search cannot be empty. Please make correct query.');
-}
-
-function alertNoImagesFound() {
-  Notify.failure('Sorry, there are no images matching your search query. Please try again.');
-}
-
-function alertEndOfSearch() {
-  Notify.info("We're sorry, but you've reached the end of search results.");
+function animateCards () {
+  setTimeout(() => {
+    const galleryCards = galleryContainer.querySelectorAll('.gallery__link');
+    galleryCards.forEach(card => { card.classList.add('animate');
+    }, 0);
+  });
 }
