@@ -102,6 +102,7 @@ button {
   overflow: hidden;
 }
 .btn-move-down, .btn-move-up {
+  z-index: 1;
   color: #ffffff;
   padding: 0;
   position: fixed;
