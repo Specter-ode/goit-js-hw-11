@@ -1,7 +1,12 @@
 import { renderCards } from './renderCards';
 import { PixabayApi } from './fetchPostsSecond';
-import { makeSlider } from  '../simpleSlider'
-import { alertAmountImagesFound, alertNoEmptySearch, alertNoImagesFound, alertEndOfSearch } from '../alerts';
+import { makeSlider } from '../simpleSlider';
+import {
+  alertAmountImagesFound,
+  alertNoEmptySearch,
+  alertNoImagesFound,
+  alertEndOfSearch,
+} from '../alerts';
 import { scrollDownOnTwoRows, btnGoTopStatus, goTop } from '../scroll';
 
 const galleryContainer = document.querySelector('.gallery');
@@ -11,53 +16,61 @@ const btnMoveDownOnTwoRows = document.querySelector('.btn-move-down');
 const btnGoTop = document.querySelector('.btn-move-up');
 const pixabay = new PixabayApi();
 
-const mutationObs = new MutationObserver ( mutationRecord => {
+const mutationObs = new MutationObserver(mutationRecord => {
   mutationRecord.forEach(mutation => {
-    const galleryCards = [...mutation.addedNodes].filter(nodeItem => nodeItem.nodeName !== '#text')
+    const galleryCards = [...mutation.addedNodes].filter(
+      nodeItem => nodeItem.nodeName !== '#text'
+    );
     setTimeout(() => {
-    galleryCards.forEach(card => { card.classList.add('animate')})
-    },0)
-  })
-})
+      galleryCards.forEach(card => {
+        card.classList.add('animate');
+      });
+    }, 0);
+  });
+});
 
-mutationObs.observe (galleryContainer, {
+mutationObs.observe(galleryContainer, {
   childList: true,
 });
 
 const onBtnSubmit = e => {
   e.preventDefault();
-  pixabay.query = e.currentTarget.elements['searchQuery'].value.trim().toLowerCase();
+  pixabay.query = e.currentTarget.elements['searchQuery'].value
+    .trim()
+    .toLowerCase();
   pixabay.page = 1;
-  pixabay.fetchPosts()
-  .then(data => {
-    clearFields();
-    if (pixabay.query === '') {
-      alertNoEmptySearch();
-      loadMoreBtnEl.classList.add('is-hidden');
-      btnMoveDownOnTwoRows.classList.add('is-hidden');
-      return;
-    } else if (!data.hits.length) {
-      alertNoImagesFound();
-      loadMoreBtnEl.classList.add('is-hidden');
-      btnMoveDownOnTwoRows.classList.add('is-hidden');
-      return;
-    } else {
-      galleryContainer.innerHTML = renderCards(data.hits);
-      makeSlider();
-      alertAmountImagesFound(data);
-      loadMoreBtnEl.classList.remove('is-hidden');
-      btnMoveDownOnTwoRows.classList.remove('is-hidden');
-    }
-  })
-  .catch(error => {
-    console.log(error);
-  });
+  pixabay
+    .fetchPosts()
+    .then(data => {
+      clearFields();
+      if (pixabay.query === '') {
+        alertNoEmptySearch();
+        loadMoreBtnEl.classList.add('is-hidden');
+        btnMoveDownOnTwoRows.classList.add('is-hidden');
+        return;
+      } else if (!data.hits.length) {
+        alertNoImagesFound();
+        loadMoreBtnEl.classList.add('is-hidden');
+        btnMoveDownOnTwoRows.classList.add('is-hidden');
+        return;
+      } else {
+        galleryContainer.innerHTML = renderCards(data.hits);
+        makeSlider();
+        alertAmountImagesFound(data);
+        loadMoreBtnEl.classList.remove('is-hidden');
+        btnMoveDownOnTwoRows.classList.remove('is-hidden');
+      }
+    })
+    .catch(error => {
+      console.log(error);
+    });
 };
 
 const onLoadMoreBtnElClick = () => {
-    pixabay.page += 1;
-    pixabay.fetchPosts()
-    .then( data => {
+  pixabay.page += 1;
+  pixabay
+    .fetchPosts()
+    .then(data => {
       const totalPages = Math.ceil(data.totalHits / pixabay.limitPerPage);
       if (pixabay.page > totalPages) {
         alertEndOfSearch();

@@ -5,7 +5,6 @@ body {
   line-height: 1.5;
   background-color: #fff;
   color: #2f2f37;
-
 }
 .container {
   padding: 0 15px 15px 15px;
@@ -33,7 +32,7 @@ input {
   align-items: center;
   margin-bottom: 30px;
 }
-.gallery {  
+.gallery {
   margin: -15px;
   display: flex;
   flex-wrap: wrap;
@@ -79,8 +78,8 @@ button {
   border-color: transparent;
   cursor: pointer;
 }
-.load-more, .search {
-
+.load-more,
+.search {
   padding: 10px;
   height: 40px;
   width: 100px;
@@ -101,7 +100,8 @@ button {
   clip: rect(0 0 0 0);
   overflow: hidden;
 }
-.btn-move-down, .btn-move-up {
+.btn-move-down,
+.btn-move-up {
   z-index: 1;
   color: #ffffff;
   padding: 0;
@@ -119,5 +119,5 @@ button {
   top: 50px;
 }
 .btn-move-up {
-  bottom: 50px
+  bottom: 50px;
 }
