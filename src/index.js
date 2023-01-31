@@ -1,6 +1,6 @@
 import createPostCard from './templates/post-card.hbs';
 import { fetchPosts } from './js/fetchPosts';
-import { makeSlider } from  './js/simpleSlider'
+import { makeSlider } from './js/simpleSlider';
 import { alertAmountImagesFound, alertNoEmptySearch, alertNoImagesFound, alertEndOfSearch } from './js/alerts';
 import { scrollDownOnTwoRows, btnGoTopStatus, goTop } from './js/scroll';
 
@@ -16,7 +16,7 @@ const intersectionObsOptions = {
 };
 let page = null;
 let searchValue = '';
-const perPage = 40;
+const perPage = 20;
 
 const onBtnSubmit = async e => {
   e.preventDefault();
@@ -67,7 +67,6 @@ const intersectionObs = new IntersectionObserver((entries, observe) => {
       galleryContainer.insertAdjacentHTML('beforeend', createPostCard(data.hits));
       makeSlider();
       animateCards();
-
     } catch (error) {
       console.log(error);
     }
@@ -83,10 +82,11 @@ function clearFields() {
   galleryContainer.innerHTML = '';
 }
 
-function animateCards () {
+function animateCards() {
   setTimeout(() => {
     const galleryCards = galleryContainer.querySelectorAll('.gallery__link');
-    galleryCards.forEach(card => { card.classList.add('animate');
+    galleryCards.forEach(card => {
+      card.classList.add('animate');
     }, 0);
   });
 }
